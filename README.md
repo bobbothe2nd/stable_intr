@@ -55,3 +55,17 @@ const C: u128 = unsafe { disjoint_bitor(123, 4) };
 const C: u32 = unsafe { disjoint_bitor(123, 4) };
 const C: usize = unsafe { disjoint_bitor(123, 4) };
 ```
+
+## Compile Error on Nightly Build
+
+Rust makes to promise of stability on nightly builds, so if this crate fails to compile:
+
+1. try disabling `nightly` feature to stop this crate from using `core::intrinsics`
+2. try disabling other unused features to avoid compiling unnecessary intrinsics
+3. just use stable rust
+
+### Nightly Detection vs Feature
+
+This crate automatically detects nightly Rust and will not use `core::intrinsics` if it detects another toolchain.
+
+To let this crate use those intrinsics even on nightly, it requires you to explicitly enable the `nightly` feature. Without this, it treats the build as stable and compiles safe fallbacks.

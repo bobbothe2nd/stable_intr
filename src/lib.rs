@@ -1,7 +1,13 @@
+//! Reimplementations of [`core::intrinsics`] for stable Rust
+//!
+//! This crate aims to provide roughly the same codegen as using actual intrinsics regardless of whether your using stable or nightly rust.
+
 #![cfg_attr(all(feature = "nightly", nightly), feature(core_intrinsics))]
 #![cfg_attr(all(feature = "nightly", nightly), allow(internal_features))]
 
 #![no_std]
+
+#![forbid(missing_docs)]
 
 #[cfg(feature = "disjoint_bitor")]
 mod disjoint_bitor;

@@ -5,8 +5,9 @@ edition = "2024"
 documentation = "https://docs.rs/stable_intr"
 repository = "https://github.com/bobbothe2nd/stable_intr"
 description = "Stable reimplementations of nightly-only core::intrinsics"
-keywords = ["intrinsics", "intstructions"]
+keywords = ["intrinsics", "intstructions", "stable"]
 categories = ["hardware-support", "no-std", "no-std::no-alloc"]
+license = "MIT"
 
 [features]
 default = [
