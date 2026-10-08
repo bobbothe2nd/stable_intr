@@ -1,0 +1,25 @@
+[package]
+name = "stable_iter"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = [
+    "hints",
+    "prefetch",
+    "nontemporal",
+    "disjoint_bitor",
+    "ptr_swap",
+    "raw_eq",
+    "breakpoint",
+    "transmute",
+]
+
+hints = []
+prefetch = []
+nontemporal = []
+disjoint_bitor = []
+ptr_swap = []
+raw_eq = []
+breakpoint = []
+transmute = []
