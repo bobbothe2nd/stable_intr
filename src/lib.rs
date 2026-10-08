@@ -1,5 +1,5 @@
-#![cfg_attr(nightly, feature(core_intrinsics))]
-#![cfg_attr(nightly, allow(internal_features))]
+#![cfg_attr(all(feature = "nightly", nightly), feature(core_intrinsics))]
+#![cfg_attr(all(feature = "nightly", nightly), allow(internal_features))]
 
 #![no_std]
 
@@ -25,10 +25,10 @@ pub use ptr::*;
 #[inline(always)]
 #[cfg(feature = "breakpoint")]
 pub fn breakpoint() {
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     core::intrinsics::breakpoint();
 
-    #[cfg(not(nightly))]
+    #[cfg(not(all(feature = "nightly", nightly)))]
     {
         use core::arch::asm;
 
@@ -53,12 +53,12 @@ pub fn breakpoint() {
 #[inline(always)]
 #[cfg(feature = "transmute")]
 pub const unsafe fn transmute_unchecked<Src, Dst>(src: Src) -> Dst {
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     unsafe {
         core::intrinsics::transmute_unchecked::<Src, Dst>(src)
     }
 
-    #[cfg(not(nightly))]
+    #[cfg(not(all(feature = "nightly", nightly)))]
     {
         use core::mem::ManuallyDrop;
 

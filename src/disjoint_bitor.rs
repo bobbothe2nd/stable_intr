@@ -31,6 +31,7 @@ macro_rules! transmute_disjoint {
 /// Immediate undefined behavior if `a & b != 0`
 ///
 /// `T` must have the representation of a primitive integer or bool
+#[inline(always)]
 pub const unsafe fn disjoint_bitor<T: DisjointBitOr>(a: T, b: T) -> T {
     unsafe {
         match const { T::REPR_ID } {
@@ -61,10 +62,11 @@ pub const unsafe fn disjoint_bitor<T: DisjointBitOr>(a: T, b: T) -> T {
 
 macro_rules! def {
     ($name:ident::<$ty:ty, $repr_id:literal>() == $zr:literal) => {
+        #[inline(always)]
         #[doc = concat!("computes the bitwise OR of two `", stringify!($ty), "`s with no bits in common")]
         pub const unsafe fn $name(a: $ty, b: $ty) -> $ty {
             unsafe {
-                $crate::assume(a & b == $zr);
+                ::core::hint::assert_unchecked(a & b == $zr);
                 a | b
             }
         }
@@ -72,7 +74,14 @@ macro_rules! def {
         unsafe impl DisjointBitOr for $ty {
             const REPR_ID: u8 = $repr_id;
 
+            #[inline(always)]
             unsafe fn disjoint_bitor(self, other: Self) -> Self {
+                #[cfg(all(feature = "nightly", nightly))]
+                unsafe {
+                    ::core::intrinsics::disjoint_bitor(self, other)
+                }
+
+                #[cfg(not(all(feature = "nightly", nightly)))]
                 unsafe {
                     $name(self, other)
                 }

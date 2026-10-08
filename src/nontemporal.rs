@@ -23,12 +23,12 @@ pub unsafe trait NontemporalStore: Copy + 'static {
 /// Use [`nontemporal_fence`] when an ordering/completion boundary is required.
 #[inline(always)]
 pub unsafe fn nontemporal_store<T: NontemporalStore>(ptr: *mut T, val: T) {
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     unsafe {
         core::intrinsics::nontemporal_store(ptr, val);
     }
 
-    #[cfg(not(nightly))]
+    #[cfg(not(all(feature = "nightly", nightly)))]
     unsafe {
         val.nontemporal_store(ptr);
     }
@@ -39,7 +39,7 @@ pub unsafe fn nontemporal_store<T: NontemporalStore>(ptr: *mut T, val: T) {
 /// Ensures that preceding nontemporal stores are globally visible before
 /// subsequent stores and memory operations are issued.
 #[inline(always)]
-pub unsafe fn nontemporal_fence() {
+pub fn nontemporal_fence() {
     #[cfg(all(
         target_arch = "x86_64",
         target_feature = "sse",
@@ -49,30 +49,37 @@ pub unsafe fn nontemporal_fence() {
     }
 }
 
-#[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
 unsafe impl NontemporalStore for i32 {
     #[inline(always)]
     unsafe fn nontemporal_store(self, dst: *mut Self) {
+        #[cfg(not(all(target_arch = "x86_64", target_feature = "sse2")))]
+        unsafe {
+            dst.write(self);
+        }
+
+        #[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
         unsafe {
             core::arch::x86_64::_mm_stream_si32(dst, self);
         }
     }
 }
 
-#[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
 unsafe impl NontemporalStore for i64 {
     #[inline(always)]
     unsafe fn nontemporal_store(self, dst: *mut Self) {
+        #[cfg(not(all(target_arch = "x86_64", target_feature = "sse2")))]
+        unsafe {
+            dst.write(self);
+        }
+
+        #[cfg(all(target_arch = "x86_64", target_feature = "sse2"))]
         unsafe {
             core::arch::x86_64::_mm_stream_si64(dst, self);
         }
     }
 }
 
-unsafe impl NontemporalStore for u32
-where 
-    i32: NontemporalStore,
-{
+unsafe impl NontemporalStore for u32 {
     #[inline(always)]
     unsafe fn nontemporal_store(self, dst: *mut Self) {
         unsafe {
@@ -81,10 +88,7 @@ where
     }
 }
 
-unsafe impl NontemporalStore for u64
-where 
-    i64: NontemporalStore,
-{
+unsafe impl NontemporalStore for u64 {
     #[inline(always)]
     unsafe fn nontemporal_store(self, dst: *mut Self) {
         unsafe {

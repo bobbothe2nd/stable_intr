@@ -2,6 +2,11 @@
 name = "stable_intr"
 version = "0.1.0"
 edition = "2024"
+documentation = "https://docs.rs/stable_intr"
+repository = "https://github.com/bobbothe2nd/stable_intr"
+description = "Stable reimplementations of nightly-only core::intrinsics"
+keywords = ["intrinsics", "intstructions"]
+categories = ["hardware-support", "no-std", "no-std::no-alloc"]
 
 [features]
 default = [
@@ -23,3 +28,16 @@ ptr_swap = []
 raw_eq = []
 breakpoint = []
 transmute = []
+nightly = []
+
+[dev-dependencies]
+criterion = "0.7"
+
+[[bench]]
+name = "nontemporal_disjoint_bitor"
+harness = false
+required-features = ["disjoint_bitor", "nontemporal", "hints"]
+
+[[example]]
+name = "nontemporal_disjoint_bitor"
+required-features = ["disjoint_bitor", "nontemporal", "hints"]

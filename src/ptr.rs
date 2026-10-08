@@ -1,19 +1,19 @@
-#[cfg(nightly)]
+#[cfg(all(feature = "nightly", nightly))]
 use core::intrinsics;
 
-#[cfg(not(nightly))]
+#[cfg(not(all(feature = "nightly", nightly)))]
 use core::{ptr::{self, from_ref}, slice};
 
 /// Swaps the values at two mutable locations, without deinitializing either one.
 #[inline(always)]
 #[cfg(feature = "ptr_swap")]
 pub const unsafe fn typed_swap_nonoverlapping<T>(x: *mut T, y: *mut T) {
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     unsafe {
         intrinsics::typed_swap_nonoverlapping(x, y);
     }
 
-    #[cfg(not(nightly))]
+    #[cfg(not(all(feature = "nightly", nightly)))]
     unsafe {
         ptr::swap(x, y);
     }
@@ -27,12 +27,12 @@ pub const unsafe fn typed_swap_nonoverlapping<T>(x: *mut T, y: *mut T) {
 #[inline(always)]
 #[cfg(feature = "raw_eq")]
 pub const unsafe fn raw_eq<T>(a: &T, b: &T) -> bool {
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     unsafe {
         intrinsics::raw_eq(a, b)
     }
 
-    #[cfg(not(nightly))]
+    #[cfg(not(all(feature = "nightly", nightly)))]
     unsafe {
         let a = slice::from_raw_parts(from_ref(a).cast::<u8>(), size_of::<T>());
         let b = slice::from_raw_parts(from_ref(b).cast::<u8>(), size_of::<T>());
@@ -59,12 +59,12 @@ pub unsafe fn prefetch_read_data<T, const LOCALITY: i32>(data: *const T) {
         assert!(LOCALITY <= 3, "invalid `LOCALITY` outside cache hierarcy");
     }
 
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     {
         intrinsics::prefetch_read_data::<T, LOCALITY>(data);
     }
 
-    #[cfg(all(not(nightly), target_arch = "x86_64", target_feature = "sse"))]
+    #[cfg(all(not(all(feature = "nightly", nightly)), target_arch = "x86_64", target_feature = "sse"))]
     unsafe {
         use core::arch::x86_64::{_MM_HINT_T0, _MM_HINT_T1, _MM_HINT_T2};
 
@@ -86,12 +86,12 @@ pub unsafe fn prefetch_write_data<T, const LOCALITY: i32>(data: *const T) {
         assert!(LOCALITY <= 3, "invalid `LOCALITY` outside cache hierarcy");
     }
 
-    #[cfg(nightly)]
+    #[cfg(all(feature = "nightly", nightly))]
     {
         intrinsics::prefetch_write_data::<T, LOCALITY>(data);
     }
 
-    #[cfg(all(not(nightly), target_arch = "x86_64", target_feature = "sse"))]
+    #[cfg(all(not(all(feature = "nightly", nightly)), target_arch = "x86_64", target_feature = "sse"))]
     unsafe {
         use core::arch::x86_64::{_MM_HINT_ET0, _MM_HINT_ET1, _MM_HINT_T2};
 
