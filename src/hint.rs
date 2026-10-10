@@ -6,6 +6,8 @@ use core::hint;
 
 /// Hints to the compiler that this path will never be taken
 ///
+/// # Safety
+///
 /// Immediate undefiend behavior if this is reached
 #[cold]
 #[inline(always)]
@@ -22,6 +24,8 @@ pub const unsafe fn unreachable() -> ! {
 }
 
 /// Hints to the compiler that it is safe to assume this will always be true
+///
+/// # Safety
 ///
 /// Immediate undefiend behavior if `b` is false
 #[inline(always)]

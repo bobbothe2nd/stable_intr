@@ -54,8 +54,6 @@ fn nontemporal_store_bench(arr: &mut [MaybeUninit<u32>]) {
         b = select_unpredictable(new_b == 0, 4, new_b);
     }
 
-    nontemporal_fence();
-
     black_box(arr);
 }
 
@@ -113,6 +111,8 @@ fn cached_store_then_read(arr: &mut [MaybeUninit<u32>]) -> u32 {
 #[inline(never)]
 fn nontemporal_store_then_read(arr: &mut [MaybeUninit<u32>]) -> u32 {
     nontemporal_store_bench(arr);
+
+    nontemporal_fence();
 
     let mut sum = 0u32;
 

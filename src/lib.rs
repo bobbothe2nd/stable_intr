@@ -5,9 +5,9 @@
 #![cfg_attr(all(feature = "nightly", nightly), feature(core_intrinsics))]
 #![cfg_attr(all(feature = "nightly", nightly), allow(internal_features))]
 
-#![no_std]
-
 #![forbid(missing_docs)]
+
+#![no_std]
 
 #[cfg(feature = "disjoint_bitor")]
 mod disjoint_bitor;
@@ -24,7 +24,10 @@ mod nontemporal;
 #[cfg(feature = "nontemporal")]
 pub use nontemporal::*;
 
+#[cfg(any(feature = "raw_eq", feature = "ptr_swap", feature = "prefetch"))]
 mod ptr;
+
+#[cfg(any(feature = "raw_eq", feature = "ptr_swap", feature = "prefetch"))]
 pub use ptr::*;
 
 /// Same as [`core::intrinsics::breakpoint`] with stable implementations for various architectures
@@ -55,7 +58,28 @@ pub fn breakpoint() {
     }
 }
 
+/// Like [`core::mem::transmute`] but with support for independently sized types
+///
+/// # Safety
+///
+/// Equally as unsafe as `transmute` but with no restriction on independently sized types
+#[inline(always)]
+#[cfg(feature = "transmute")]
+pub const unsafe fn transmute_independent<Src, Dst>(src: Src) -> Dst {
+    const {
+        assert!(size_of::<Src>() == size_of::<Dst>(), "cannot transmute between types of different sizes")
+    }
+
+    unsafe {
+        transmute_unchecked::<Src, Dst>(src)
+    }
+}
+
 /// Like [`core::mem::transmute`] but without the size checks
+///
+/// # Safety
+///
+/// Even more unsafe than `transmute` because it's undefined behavior if `Src` and `Dst have different sizes`
 #[inline(always)]
 #[cfg(feature = "transmute")]
 pub const unsafe fn transmute_unchecked<Src, Dst>(src: Src) -> Dst {
@@ -75,10 +99,14 @@ pub const unsafe fn transmute_unchecked<Src, Dst>(src: Src) -> Dst {
 
         unsafe {
             core::hint::assert_unchecked(size_of::<Src>() == size_of::<Dst>());
-
-            ManuallyDrop::into_inner(Transmute {
-                t: ManuallyDrop::new(src),
-            }.u)
         }
+
+        let transmutee = Transmute {
+            t: ManuallyDrop::new(src),
+        };
+
+        let transmuted = unsafe { transmutee.u };
+
+        ManuallyDrop::into_inner(transmuted)
     }
 }

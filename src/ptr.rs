@@ -1,10 +1,11 @@
 #[cfg(all(feature = "nightly", nightly))]
 use core::intrinsics;
 
-#[cfg(not(all(feature = "nightly", nightly)))]
-use core::{ptr::{self, from_ref}, slice};
-
 /// Swaps the values at two mutable locations, without deinitializing either one.
+///
+/// # Safety
+///
+/// Both `x` and `y` must be valid pointers
 #[inline(always)]
 #[cfg(feature = "ptr_swap")]
 pub const unsafe fn typed_swap_nonoverlapping<T>(x: *mut T, y: *mut T) {
@@ -15,7 +16,7 @@ pub const unsafe fn typed_swap_nonoverlapping<T>(x: *mut T, y: *mut T) {
 
     #[cfg(not(all(feature = "nightly", nightly)))]
     unsafe {
-        ptr::swap(x, y);
+        core::ptr::swap(x, y);
     }
 }
 
@@ -34,6 +35,8 @@ pub const unsafe fn raw_eq<T>(a: &T, b: &T) -> bool {
 
     #[cfg(not(all(feature = "nightly", nightly)))]
     unsafe {
+        use core::{ptr::from_ref, slice};
+
         let a = slice::from_raw_parts(from_ref(a).cast::<u8>(), size_of::<T>());
         let b = slice::from_raw_parts(from_ref(b).cast::<u8>(), size_of::<T>());
 
@@ -52,9 +55,11 @@ pub const unsafe fn raw_eq<T>(a: &T, b: &T) -> bool {
 }
 
 /// Hints to insert a prefetch instruction for the given address
+///
+/// Unsupported platforms perform no prefetching
 #[inline(always)]
 #[cfg(feature = "prefetch")]
-pub unsafe fn prefetch_read_data<T, const LOCALITY: i32>(data: *const T) {
+pub fn prefetch_read_data<T, const LOCALITY: i32>(data: *const T) {
     const {
         assert!(LOCALITY <= 3, "invalid `LOCALITY` outside cache hierarcy");
     }
@@ -73,17 +78,20 @@ pub unsafe fn prefetch_read_data<T, const LOCALITY: i32>(data: *const T) {
             1 => core::arch::x86_64::_mm_prefetch::<{ _MM_HINT_T2 }>(data.cast()),
             2 => core::arch::x86_64::_mm_prefetch::<{ _MM_HINT_T1 }>(data.cast()),
             3 => core::arch::x86_64::_mm_prefetch::<{ _MM_HINT_T0 }>(data.cast()),
-            _ => crate::unreachable(),
+            _ => core::hint::unreachable_unchecked(),
         }
     }
 }
 
-/// ints to insert a prefetch instruction for te given address indicating anticipation to write
+/// Hints to insert a prefetch instruction for te given address indicating anticipation to write
+///
+/// Unsupported platforms perform no prefetching
 #[inline(always)]
 #[cfg(feature = "prefetch")]
-pub unsafe fn prefetch_write_data<T, const LOCALITY: i32>(data: *const T) {
+pub fn prefetch_write_data<T, const LOCALITY: i32>(data: *const T) {
     const {
-        assert!(LOCALITY <= 3, "invalid `LOCALITY` outside cache hierarcy");
+        assert!(LOCALITY >= 0, "LOCALITY must be non-negative");
+        assert!(LOCALITY <= 3, "LOCALITY must be at most 3");
     }
 
     #[cfg(all(feature = "nightly", nightly))]
@@ -100,7 +108,7 @@ pub unsafe fn prefetch_write_data<T, const LOCALITY: i32>(data: *const T) {
             1 => core::arch::x86_64::_mm_prefetch::<{ _MM_HINT_T2 }>(data.cast()),
             2 => core::arch::x86_64::_mm_prefetch::<{ _MM_HINT_ET1 }>(data.cast()),
             3 => core::arch::x86_64::_mm_prefetch::<{ _MM_HINT_ET0 }>(data.cast()),
-            _ => crate::unreachable(),
+            _ => core::hint::unreachable_unchecked(),
         }
     }
 }

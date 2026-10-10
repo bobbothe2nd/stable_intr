@@ -11,6 +11,10 @@ pub unsafe trait DisjointBitOr: Copy + 'static {
     const REPR_ID: u8 = 255;
 
     /// Computes the bitwise OR of two values with no bits in common
+    ///
+    /// # Safety
+    ///
+    /// Immediate undefined behavior if `self & other != 0`
     unsafe fn disjoint_bitor(self, other: Self) -> Self {
         unsafe {
             disjoint_bitor(self, other)
@@ -18,13 +22,9 @@ pub unsafe trait DisjointBitOr: Copy + 'static {
     }
 }
 
-macro_rules! transmute_disjoint {
-    ($name:ident($a:ident, $b:ident)) => {
-        $crate::transmute_unchecked($name($crate::transmute_unchecked($a), $crate::transmute_unchecked($b)))
-    };
-}
-
 /// Computes the bitwise OR of two values with no bits in common
+///
+/// This never uses the unstable intrinsic, prefer [`DisjointBitOr::disjoint_bitor`] at runtime.
 ///
 /// # Safety
 ///
@@ -33,6 +33,12 @@ macro_rules! transmute_disjoint {
 /// `T` must have the representation of a primitive integer or bool
 #[inline(always)]
 pub const unsafe fn disjoint_bitor<T: DisjointBitOr>(a: T, b: T) -> T {
+    macro_rules! transmute_disjoint {
+        ($name:ident($a:ident, $b:ident)) => {
+            $crate::transmute_unchecked($name($crate::transmute_unchecked($a), $crate::transmute_unchecked($b)))
+        };
+    }
+
     unsafe {
         match const { T::REPR_ID } {
             0 => transmute_disjoint!(disjoint_bitor_bool(a, b)),
@@ -55,7 +61,7 @@ pub const unsafe fn disjoint_bitor<T: DisjointBitOr>(a: T, b: T) -> T {
             11 => transmute_disjoint!(disjoint_bitor_usize(a, b)),
             12 => transmute_disjoint!(disjoint_bitor_isize(a, b)),
 
-            _ => crate::unreachable(),
+            _ => core::hint::unreachable_unchecked(),
         }
     }
 }
@@ -63,12 +69,17 @@ pub const unsafe fn disjoint_bitor<T: DisjointBitOr>(a: T, b: T) -> T {
 macro_rules! def {
     ($name:ident::<$ty:ty, $repr_id:literal>() == $zr:literal) => {
         #[inline(always)]
-        #[doc = concat!("computes the bitwise OR of two `", stringify!($ty), "`s with no bits in common")]
+        #[doc = concat!("Computes the bitwise OR of two `", stringify!($ty), "`s with no bits in common")]
+        ///
+        /// # Safety
+        ///
+        /// Immediate undefined behavior if `a & b != 0`
         pub const unsafe fn $name(a: $ty, b: $ty) -> $ty {
             unsafe {
                 ::core::hint::assert_unchecked(a & b == $zr);
-                a | b
             }
+
+            a | b
         }
 
         unsafe impl DisjointBitOr for $ty {
