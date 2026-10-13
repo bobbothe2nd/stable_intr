@@ -4,9 +4,7 @@
 
 #![cfg_attr(all(feature = "nightly", nightly), feature(core_intrinsics))]
 #![cfg_attr(all(feature = "nightly", nightly), allow(internal_features))]
-
 #![forbid(missing_docs)]
-
 #![no_std]
 
 #[cfg(feature = "disjoint_bitor")]
@@ -42,19 +40,29 @@ pub fn breakpoint() {
         use core::arch::asm;
 
         #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        unsafe { asm!("int3", options(nomem, nostack)) };
+        unsafe {
+            asm!("int3", options(nomem, nostack))
+        };
 
         #[cfg(target_arch = "arm")]
-        unsafe { asm!("bkpt", options(nomem, nostack)) };
+        unsafe {
+            asm!("bkpt", options(nomem, nostack))
+        };
 
         #[cfg(target_arch = "aarch64")]
-        unsafe { asm!("brk #0xf000", options(nomem, nostack)) };
+        unsafe {
+            asm!("brk #0xf000", options(nomem, nostack))
+        };
 
         #[cfg(any(target_arch = "riscv32", target_arch = "riscv64"))]
-        unsafe { asm!("ebreak", options(nomem, nostack)) };
+        unsafe {
+            asm!("ebreak", options(nomem, nostack))
+        };
 
         #[cfg(any(target_arch = "mips", target_arch = "mips64"))]
-        unsafe { asm!("break", options(nomem, nostack)) };
+        unsafe {
+            asm!("break", options(nomem, nostack))
+        };
     }
 }
 
@@ -67,12 +75,13 @@ pub fn breakpoint() {
 #[cfg(feature = "transmute")]
 pub const unsafe fn transmute_independent<Src, Dst>(src: Src) -> Dst {
     const {
-        assert!(size_of::<Src>() == size_of::<Dst>(), "cannot transmute between types of different sizes")
+        assert!(
+            size_of::<Src>() == size_of::<Dst>(),
+            "cannot transmute between types of different sizes"
+        )
     }
 
-    unsafe {
-        transmute_unchecked::<Src, Dst>(src)
-    }
+    unsafe { transmute_unchecked::<Src, Dst>(src) }
 }
 
 /// Like [`core::mem::transmute`] but without the size checks

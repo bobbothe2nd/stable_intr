@@ -16,9 +16,7 @@ pub unsafe trait DisjointBitOr: Copy + 'static {
     ///
     /// Immediate undefined behavior if `self & other != 0`
     unsafe fn disjoint_bitor(self, other: Self) -> Self {
-        unsafe {
-            disjoint_bitor(self, other)
-        }
+        unsafe { disjoint_bitor(self, other) }
     }
 }
 
@@ -35,7 +33,10 @@ pub unsafe trait DisjointBitOr: Copy + 'static {
 pub const unsafe fn disjoint_bitor<T: DisjointBitOr>(a: T, b: T) -> T {
     macro_rules! transmute_disjoint {
         ($name:ident($a:ident, $b:ident)) => {
-            $crate::transmute_unchecked($name($crate::transmute_unchecked($a), $crate::transmute_unchecked($b)))
+            $crate::transmute_unchecked($name(
+                $crate::transmute_unchecked($a),
+                $crate::transmute_unchecked($b),
+            ))
         };
     }
 
@@ -167,7 +168,16 @@ mod tests {
     test_disjoint_bitor!(u32_, u32, 0, 0, 1, 2, 0x8000_0000, 0xffff_ffff);
     test_disjoint_bitor!(i32_, i32, 0, 0, 1, 2, -1, i32::MIN);
 
-    test_disjoint_bitor!(u64_, u64, 0, 0, 1, 2, 0x8000_0000_0000_0000, 0xffff_ffff_ffff_ffff);
+    test_disjoint_bitor!(
+        u64_,
+        u64,
+        0,
+        0,
+        1,
+        2,
+        0x8000_0000_0000_0000,
+        0xffff_ffff_ffff_ffff
+    );
     test_disjoint_bitor!(i64_, i64, 0, 0, 1, 2, -1, i64::MIN);
 
     test_disjoint_bitor!(u128_, u128, 0, 0, 1, 2, 1 << 127, u128::MAX);
@@ -183,23 +193,20 @@ mod tests {
                 let a = $a as $ty;
                 let b = $b as $ty;
 
-                assert_eq!(
-                    unsafe { disjoint_bitor(a, b) },
-                    a | b,
-                );
+                assert_eq!(unsafe { disjoint_bitor(a, b) }, a | b,);
             }};
         }
 
-        check!(u8,   0x01, 0x80);
-        check!(u16,  0x1234, 0x8000);
-        check!(u32,  0x0000_ffff, 0xffff_0000);
-        check!(u64,  0x0000_0000_ffff_ffff, 0xffff_ffff_0000_0000);
+        check!(u8, 0x01, 0x80);
+        check!(u16, 0x1234, 0x8000);
+        check!(u32, 0x0000_ffff, 0xffff_0000);
+        check!(u64, 0x0000_0000_ffff_ffff, 0xffff_ffff_0000_0000);
         check!(u128, 0xffff_ffff_ffff_ffff, 0xffff_ffff_ffff_ffffu128 << 64);
 
-        check!(i8,   0x01, -128i8);
-        check!(i16,  0x1234, -32768i16);
-        check!(i32,  0x0000_ffff, i32::MIN);
-        check!(i64,  0x0000_0000_ffff_ffff, i64::MIN);
+        check!(i8, 0x01, -128i8);
+        check!(i16, 0x1234, -32768i16);
+        check!(i32, 0x0000_ffff, i32::MIN);
+        check!(i64, 0x0000_0000_ffff_ffff, i64::MIN);
         check!(i128, 0xffff_ffff, i128::MIN);
 
         check!(usize, 1, 2);

@@ -16,7 +16,7 @@ pub const unsafe fn typed_swap_nonoverlapping<T>(x: *mut T, y: *mut T) {
 
     #[cfg(not(all(feature = "nightly", nightly)))]
     unsafe {
-        core::ptr::swap(x, y);
+        core::ptr::swap_nonoverlapping(x, y, 1);
     }
 }
 
@@ -69,7 +69,11 @@ pub fn prefetch_read_data<T, const LOCALITY: i32>(data: *const T) {
         intrinsics::prefetch_read_data::<T, LOCALITY>(data);
     }
 
-    #[cfg(all(not(all(feature = "nightly", nightly)), target_arch = "x86_64", target_feature = "sse"))]
+    #[cfg(all(
+        not(all(feature = "nightly", nightly)),
+        target_arch = "x86_64",
+        target_feature = "sse"
+    ))]
     unsafe {
         use core::arch::x86_64::{_MM_HINT_T0, _MM_HINT_T1, _MM_HINT_T2};
 
@@ -99,7 +103,11 @@ pub fn prefetch_write_data<T, const LOCALITY: i32>(data: *const T) {
         intrinsics::prefetch_write_data::<T, LOCALITY>(data);
     }
 
-    #[cfg(all(not(all(feature = "nightly", nightly)), target_arch = "x86_64", target_feature = "sse"))]
+    #[cfg(all(
+        not(all(feature = "nightly", nightly)),
+        target_arch = "x86_64",
+        target_feature = "sse"
+    ))]
     unsafe {
         use core::arch::x86_64::{_MM_HINT_ET0, _MM_HINT_ET1, _MM_HINT_T2};
 

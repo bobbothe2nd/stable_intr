@@ -1,6 +1,6 @@
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use stable_intr::{disjoint_bitor, nontemporal_fence, nontemporal_store, select_unpredictable};
 use core::hint::black_box;
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
+use stable_intr::{disjoint_bitor, nontemporal_fence, nontemporal_store, select_unpredictable};
 use std::mem::MaybeUninit;
 
 const SIZES: &[usize] = &[
@@ -99,9 +99,7 @@ fn cached_store_then_read(arr: &mut [MaybeUninit<u32>]) -> u32 {
 
     let mut sum = 0u32;
 
-    for &x in unsafe {
-        arr.assume_init_ref().iter()
-    } {
+    for &x in unsafe { arr.assume_init_ref().iter() } {
         sum = sum.wrapping_add(x);
     }
 
@@ -116,9 +114,7 @@ fn nontemporal_store_then_read(arr: &mut [MaybeUninit<u32>]) -> u32 {
 
     let mut sum = 0u32;
 
-    for &x in unsafe {
-        arr.assume_init_ref().iter()
-    } {
+    for &x in unsafe { arr.assume_init_ref().iter() } {
         sum = sum.wrapping_add(x);
     }
 

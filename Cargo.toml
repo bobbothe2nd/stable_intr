@@ -1,6 +1,6 @@
 [package]
 name = "stable_intr"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 documentation = "https://docs.rs/stable_intr"
 repository = "https://github.com/bobbothe2nd/stable_intr"

@@ -40,10 +40,7 @@ pub unsafe fn nontemporal_store<T: NontemporalStore>(ptr: *mut T, val: T) {
 /// subsequent stores and memory operations are issued.
 #[inline(always)]
 pub fn nontemporal_fence() {
-    #[cfg(all(
-        target_arch = "x86_64",
-        target_feature = "sse",
-    ))]
+    #[cfg(all(target_arch = "x86_64", target_feature = "sse",))]
     unsafe {
         core::arch::x86_64::_mm_sfence();
     }

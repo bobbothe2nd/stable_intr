@@ -2,7 +2,7 @@
 
 Replaces nightly-only `core::intrinsics` with stable functions. These intrinsics have roughly the same codegen.
 
-Compared to crates with similar scopes, these implementations have the same effects on both stable and nightly. For example, `stable-intrinsics` uses no-ops for `likely`/`unlikely` and normal pointer writes for nontemporal stores. In this crate, `nontemporal_store` generates `x86` instruction `MOVNTI` and `likely`/`unlikely` mark the unlikely path as cold, hitning to the compiler that it's actually unlikely. Unlike `stable_intrinsics::transmute_unchecked`, `stable_intr::transmute_unchecked` is actually a byte reinterpretation, not a copy.
+Compared to crates with similar scopes, these implementations have the same effects on both stable and nightly. For example, `stable-intrinsics` uses no-ops for `likely`/`unlikely` and normal pointer writes for nontemporal stores. In this crate, `nontemporal_store` generates x86 instruction `MOVNTI` and `likely`/`unlikely` mark the unlikely path as cold, hinting to the compiler that it's actually unlikely. Unlike `stable_intrinsics::transmute_unchecked`, `stable_intr::transmute_unchecked` is actually a byte reinterpretation, not a copy.
 
 ## Usage
 
@@ -60,7 +60,7 @@ const C: usize = unsafe { disjoint_bitor(123, 4) };
 
 ## Compile Error on Nightly Build
 
-Rust makes to promise of stability on nightly builds, so if this crate fails to compile:
+Rust makes no promise of stability on nightly builds, so if this crate fails to compile:
 
 1. try disabling other unused features to avoid compiling unnecessary intrinsics
 2. try disabling `nightly` feature to stop this crate from using `core::intrinsics`
